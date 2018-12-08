@@ -205,6 +205,7 @@ int read_resp(FILE *read_fd) {
     long file_len = 0;
     long counter = 0;
     long toprocess = 0;
+    size_t read = -1;
     size_t len = 0;
     FILE *fp = NULL;
 
@@ -247,7 +248,11 @@ int read_resp(FILE *read_fd) {
             }
 
             // read [buffersize] from file descriptor
-            fread(buffer, 1, (size_t) toprocess, read_fd);
+            read = fread(buffer, 1, (size_t) toprocess, read_fd);
+            if ((long)read < toprocess){
+                fprintf(stderr, "Read Error\n");
+            }
+
             counter -= toprocess;
 
             // write [buffersize] bytes to file
