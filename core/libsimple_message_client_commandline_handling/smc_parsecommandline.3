@@ -1,0 +1,164 @@
+.\"
+.\" File    : $RCSfile$ (cvs $Revision$)
+.\" Release : $Name$
+.\"
+.\" Module  : VCS TCP/IP bulletin board client
+.\" Version : 1.0
+.\" Date    : $Date$
+.\" Author  : Thomas M. Galla
+.\"
+.TH smc_parsecommandline 3 "Oct 23, 2011" "Technikum Wien" "VCS TCP/IP" 
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH NAME
+smc_parsecommandline \- Command line parser for VCS TCP/IP message bulletin board client.
+\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH SYNOPSIS
+.nf
+.B #include <simple_message_client_commandline_handling.h>
+.sp
+.BI "void smc_parsecommandline("
+.BI "    int " "argc",
+.BI "    const char * const " "argv[]",
+.BI "    smc_usagefunc_t " "usage", 
+.BI "    const char **" "server",
+.BI "    const char **" "port",
+.BI "    const char **" "user",
+.BI "    const char **" "message",
+.BI "    const char **" "img_url",
+.BI "    int *" "verbose"
+.BI "    );"
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH DESCRIPTION
+.BR smc_parsecommandline ()
+parses the command line of the VCS TCP/IP message bulletin board
+client and extracts the provided arguments.
+.PP
+To do this
+.BR smc_parsecommandline ()
+requires the following input arguments:
+.TP 12
+.I argc
+the argument count as given to the
+.BR main ()
+function.
+.TP
+.I argv
+the argument vector as given to the
+.BR main ()
+function.
+.TP
+.I usage
+a function pointer to a function that is called upon a failure in
+command line parsing by
+.BR smc_parsecommandline ()
+to display a usage information on
+.I stderr
+or on
+.I stdout
+(in case the option
+.B -h
+is provided on the commandline) and terminate the program afterwards.
+The type of this function pointer is 
+.sp
+.in +4n
+.nf
+typedef void (* smc_usagefunc_t) (FILE *, const char *, int);
+.fi
+.in
+.PP
+The function
+.BR smc_parsecommandline ()
+provides the following output arguments:
+.TP 12
+.I server
+zero terminated string containing the IP address or the full qualified
+domain name (FQDN) of the server.
+.TP
+.I port
+zero terminated string containing the port number or the service name
+(e.g., "http") of the service.
+.TP
+.I user
+zero terminated string containing the name of the user.
+.TP
+.I message
+zero terminated string containing the message to be sent.
+.TP
+.I img_url
+zero terminated string containing the image URL to be used. - Since the
+image parameter is optionale, the returned string can be NULL
+(i.e., img_url can be NULL).
+.TP
+.I verbose
+integer containing info whether output shall be verbose (TRUE)
+or not (FALSE).
+.PP
+Upon successful execution, the function
+.BR smc_parsecommandline ()
+returns to its caller, and the output parameters
+.IR server ,
+.IR port ,
+.IR user ,
+.IR message ,
+and
+.I img_url
+are filled properly (Note that
+.I img_url
+might be NULL, since it's optional on the commandline.).
+.PP
+Upon failure the function prints usage information and terminates the program by
+calling
+.IR usage ().
+.PP
+A correct blueprint for the
+.BR usage ()
+function is the following:
+.sp
+.in +4n
+.nf
+.BI "void usage(FILE *" "stream" ", const char *" "cmnd" ", int " "exitcode");
+.fi
+.in
+.sp
+Hereby
+.BR usage ()
+requires the following input arguments:
+.TP 12
+.I stream
+the stream to write the usage information to (e.g.,
+.I stdout
+or
+.IR stderr ).
+.TP
+.I cmnd
+a string containing the name of the executable (i.e., the contents of
+.IR argv[0] ).
+.TP
+.I exitcode
+the exit code to be used in the call to
+.BR exit (3)
+for terminating the program.
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH SEE ALSO
+.BR getopt\c
+(3),
+.BR exit\c
+(3),
+.BR simple_message_client\c
+(1)
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH AUTHORS
+Thomas M. Galla <\fIgalla@technikum-wien.at\fP>
+.\"
+.\" = eof ==================================================================== 
+.\"
