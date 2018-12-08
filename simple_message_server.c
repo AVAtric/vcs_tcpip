@@ -50,7 +50,7 @@
 static int get_parameters(int argc, char *argv[], char *port[]);
 static int create_socket(char *port);
 static int fork_server(int socket_file_descriptor);
-static void child_signal(int sig);
+static void child_signal(int signal);
 
 /*
  * ------------------------------------------------------------- functions --
@@ -288,3 +288,7 @@ static void child_signal(int signal) {
     (void)signal;
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
+
+/*
+ * =================================================================== eof ==
+ */
