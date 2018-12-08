@@ -113,7 +113,7 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
     errno = 0;
 
     if (argc < 2) {
-        warnx("Not enough arguments!")
+        warnx("Not enough arguments!");
         return -1;
     }
 
@@ -212,7 +212,7 @@ static int create_socket(char *port) {
  * @returns 0 if everything went well or -1 in case of error
  */
 static int fork_server(int socket_file_descriptor) {
-    int open_socket = -1;
+    int open_socket;
     struct sockaddr_in socket_address;
     socklen_t address_size = sizeof(struct sockaddr_in);
 
