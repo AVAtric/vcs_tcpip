@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;
+charset=ISO-8859-15" />
+    <link rel="stylesheet" type="text/css" href="tcpip.css" />
+    <title>Verteilte Computersysteme - TCP/IP -
+Response</title>
+  </head>
+  <body>
+    <hr/>
+    <center>
+       <h1>Verteilte Computersysteme - TCP/IP - Response</h1>
+    </center>
+    <hr/>
+    <table>
+       <td>
+     <img src="ok.png" alt="OK Image">
+       </td>
+       <td align=left>
+         <p align=left>
+            Ihre Nachricht wurde erfolgreich dem VCS TCP/IP
+            Bulletin Board hinzugef&uuml;gt. Sie finden das
+            Bulletin Board unter folgender URL:
+         </p>
+         <p align=left>
+            <code><a href="%s">%s</a></code>
+         </p>
+       </td>
+    </table>
+    <hr/>
+    <address>
+      <a href="mailto:galla@technikum-wien.at">Thomas M. Galla</a>
+    </address>
+    <address>
+      <a href="mailto:fibich@technikum-wien.at">Christian Fibich</a>
+    </address>
+  </body>
+</html>

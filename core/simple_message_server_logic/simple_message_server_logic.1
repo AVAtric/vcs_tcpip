@@ -1,0 +1,168 @@
+.\"
+.\" File    : $RCSfile$ (cvs $Revision$)
+.\" Release : $Name$
+.\"
+.\" Module  : VCS TCP/IP bulletin board server business logic
+.\" Version : 1.0
+.\" Date    : $Date$
+.\" Author  : Thomas M. Galla
+.\"
+.TH simple_message_server_logic 1 "Dec 5, 2015" "Technikum Wien" "VCS TCP/IP" 
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH NAME
+simple_message_server_logic \- The VCS TCP/IP message bulletin board server
+business logic.
+\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH SYNOPSIS
+.B simple_message_server_logic
+.RB "[\|" "\-h" "\|]"
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH DESCRIPTION
+.B simple_message_server_logic \c
+- The VCS TCP/IP message bulletin board server business logic.
+
+.B simple_message_server_logic
+(VCS TCP/IP message bulletin board server business logic) is
+the business logic of the
+.B simple_message_server\c
+(1) server daemon program.
+.B simple_message_server_logic
+reads input from
+.I stdin
+and writes output to
+.I stdout\c
+\&.
+
+.B simple_message_server_logic
+is intended to be executed by a child daemon (with
+.I stdin
+and
+.I stdout
+redirected to the connected socket) of the
+.B simple_message_server\c
+(1) application.
+
+Providing the
+.I -h\c
+\& commandline option causes a usage message to be written to
+.I stdout\c
+\&.
+
+Beware that
+.B simple_message_server_logic
+assumes that there is a directory named
+.I public_html
+which can be read by the user
+.I apache
+(i.e., the user running the
+.I apache
+web server).
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH OPTIONS
+The following options are supported:
+
+.TP
+.B "\-h, --help"
+Write usage information to \c
+.I stdout\c
+\&.
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH TESTCASES
+This program can perform several tests, which can be choosen by setting
+the environment variable
+.I SMSL_TESTCASE
+to one of the following values:
+
+.TP
+.B "TESTCASE_NONE (0)"
+Do not perform any specific tests.
+
+.TP
+.B "TESTCASE_CHECK_ARGV (1)"
+Check if
+.I argv[0]
+is set correctly.
+
+.TP
+.B "TESTCASE_CHECK_FD (2)"
+Check if all unused file descriptors (i.e., all file descriptors except
+.I stdin\c
+,
+.I stdout\c
+, and
+.I stderr\c
+) are closed properly.
+
+.TP
+.B "TESTCASE_POSTPONE_COMPLETION (3)"
+Delay the termination (and thus the closing of
+.I stdin\c
+,
+.I stdout\c
+, and
+.I stderr
+to check proper handling of multiple connections.
+
+.TP
+.B "TESTCASE_PREMATURE_CLOSE (4)"
+Simulate network problems by closing
+.I stdin\c
+,
+.I stdout\c
+, and
+.I stderr
+prematurly (connection closed by peer).
+
+.TP
+.B "TESTCASE_SMALLER_LENGTH (5)"
+Transfer a file that is longer than the number of bytes transmitted in the
+file header.
+
+.TP
+.B "TESTCASE_WRITE_DELAY (6)"
+Add a delay between the write operations of the different chunks of the
+response.
+
+.TP
+.B "TESTCASE_HTML_ONLY_REPLY (7)"
+Send the HTML part of the response only
+
+.TP
+.B "TESTCASE_HUGE_FILE (8)"
+Send a really huge file for the response between the HTML part and the
+PNG part.
+
+.P
+The following test must be executed manually: Rename the executable
+.B simple_message_server_logic
+to check if a failure of the
+.B exec\c
+(2) system call is handled correctly.
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH SEE ALSO
+.BR simple_message_client\c
+(1),
+.BR simple_message_server\c
+(1)
+.\"
+.\" --------------------------------------------------------------------------
+.\"
+.SH AUTHORS
+Franz Hollerer <\fIhollerer@technikum-wien.at\fP>
+.br
+Thomas M. Galla <\fIgalla@technikum-wien.at\fP>
+.\"
+.\" = eof ==================================================================== 
+.\"
