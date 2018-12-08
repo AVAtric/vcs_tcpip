@@ -244,23 +244,19 @@ static int fork_server(int socket_file_descriptor) {
         }
 
         switch (fork()) {
-
             case -1:
                 close(open_socket);
                 break;
-
             case 0:
                 close(socket_file_descriptor);
                 if (dup2(open_socket, STDIN_FILENO) == -1) {
                     _exit(EXIT_FAILURE);
                 }
-                if (dup2(open_socket, STDOUT_FILENO) == -1) {
-                    _exit(EXIT_FAILURE);
-                }
                 close(open_socket);
                 execl(SERVER_LOGIC, "", NULL);
-                _exit(EXIT_FAILURE);
 
+                // Will only be reached if starting logic failed
+                _exit(EXIT_FAILURE);
             default:
                 close(open_socket);
                 break;
