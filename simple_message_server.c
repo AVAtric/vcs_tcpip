@@ -278,17 +278,13 @@ static int fork_server(int socket_file_descriptor) {
 
 
 /**
- * \brief Fork the server
+ * \brief Child signal handler
  *
- * Clones the calling process when new connection happens and passes the connection.
+ * Waits for child-process to die
  *
- * \param socket_file_descriptor - integer value of the server socket
- *
- *
- * \return Information about succes or failure in the execution
- * \retval -1 failed execution.
+ * \param signal - integer value for signal
  */
-static void child_signal(int sig) {
-    (void)sig;
+static void child_signal(int signal) {
+    (void)signal;
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
