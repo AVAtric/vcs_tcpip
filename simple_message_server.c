@@ -70,7 +70,7 @@ static void child_signal(int sig);
  */
 int main(int argc, char *argv[]) {
     char *port_number = NULL;
-    int socket = -1;
+    int socket;
 
     // Parse the passed parameters or throw an error if this is not possible.
     if (get_parameters(argc, argv, &port_number) == -1) {
@@ -111,9 +111,6 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
     long port_number;
     char *check_convert;
 
-    // Reset errors
-    errno = 0;
-
     if (argc < 2) {
         warnx("Not enough arguments!");
         return -1;
@@ -124,14 +121,25 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
             case 'h':
                 return -1;
             case 'p':
+                errno = 0;
+
                 port_number = strtol(optarg, &check_convert, 10);
-                //Check if error happen and if converting port number went wrong
-                if (errno != 0 || *check_convert != '\0' ||
-                    // Check port number rage
-                    port_number < 1 || port_number > 65535) {
-                    warnx("Something wrong with the port!");
+
+                if(errno != 0){
+                    warnx("Some error happend: %i", errno);
                     return -1;
                 }
+
+                if(*check_convert != '\0'){
+                    warnx("Port not found!");
+                    return -1;
+                }
+
+                if(port_number < 1 || port_number > 65535){
+                    warnx("Port not in rage!");
+                    return -1;
+                }
+
                 *port = optarg;
                 break;
             default:
@@ -207,18 +215,22 @@ static int create_socket(char *port) {
 }
 
 /**
- * @brief a forking server
+ * \brief Fork the server
  *
- * @param sock the server socket
+ * Clones the calling process when new connection happens and passes the connection.
  *
- * @returns 0 if everything went well or -1 in case of error
+ * \param socket_file_descriptor - integer value of the server socket
+ *
+ *
+ * \return Information about succes or failure in the execution
+ * \retval -1 failed execution.
  */
 static int fork_server(int socket_file_descriptor) {
     int open_socket;
+    struct sigaction signal_action;
     struct sockaddr_in socket_address;
     socklen_t address_size = sizeof(struct sockaddr_in);
 
-    struct sigaction signal_action;
     signal_action.sa_handler = child_signal;
     sigemptyset(&signal_action.sa_mask);
     signal_action.sa_flags = SA_RESTART;
@@ -264,10 +276,17 @@ static int fork_server(int socket_file_descriptor) {
     }
 }
 
+
 /**
- * @brief handles SIGCHLD by waiting for dead processes
+ * \brief Fork the server
  *
- * @param sig the signal number (ignored)
+ * Clones the calling process when new connection happens and passes the connection.
+ *
+ * \param socket_file_descriptor - integer value of the server socket
+ *
+ *
+ * \return Information about succes or failure in the execution
+ * \retval -1 failed execution.
  */
 static void child_signal(int sig) {
     (void)sig;

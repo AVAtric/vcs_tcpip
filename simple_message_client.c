@@ -31,6 +31,7 @@
  * --------------------------------------------------------------- defines --
  */
 
+#define BUFFER_SIZE 255
 #define print_v(fmt, ...)                                   \
   if (verbose)                                              \
     fprintf(stderr, "%s(): " fmt, __func__, __VA_ARGS__);
@@ -197,9 +198,8 @@ int send_req(FILE *write_fd, const char *user, const char *message, const char *
 }
 
 int read_resp(FILE *read_fd) {
-    const int buffersize = 255;
     char *line = NULL;
-    char buffer[buffersize];
+    char buffer[BUFFER_SIZE];
     char *file_name = NULL;
     long status = -1;
     long file_len = 0;
