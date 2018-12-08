@@ -1,7 +1,11 @@
+PROJECT_NAME = "Bulletin Board"
 OUTPUT_DIRECTORY = doc
 LATEX_OUTPUT = pdf
 EXTRACT_ALL = YES
-FILE_PATTERNS = *.c *.h *.md
 EXTRACT_STATIC = YES
-RECURSIVE = YES
+INPUT  =    core/libsimple_message_client_commandline_handling/simple_message_client_commandline_handling.c \
+            core/simple_message_server_logic/simple_message_server_logic.c \
+            simple_message_client.c \
+            simple_message_server.c \
+            README.md
 USE_MDFILE_AS_MAINPAGE = README.md

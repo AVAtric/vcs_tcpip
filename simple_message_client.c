@@ -180,12 +180,11 @@ void usage(FILE *stream, const char *cmnd, int exitcode) {
 int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url) {
     const char *pre_user = "user=";
     const char *pre_message = "\n";
-    const char *pre_img_url;
+    const char *pre_img_url = "";
 
     if (img_url != NULL) {
         pre_img_url = "\nimg=";
     } else {
-        pre_img_url = "";
         img_url = "";
     }
 
@@ -201,18 +200,18 @@ int read_resp(FILE *read_fd) {
     char *line = NULL;
     char buffer[BUFFER_SIZE];
     char *file_name = NULL;
-    long status = -1;
+    long status;
     long file_len = 0;
     long counter = 0;
-    long toprocess = 0;
-    size_t read = -1;
+    long to_process = 0;
+    size_t read;
     size_t len = 0;
     FILE *fp = NULL;
 
     if ((getline(&line, &len, read_fd)) != -1) {
         strtok(line, "=");
         status = strtol(strtok(NULL, "\n"), NULL, 10);
-        print_v("Obtained and parsed Status from server\nStatus: %ld\n",status);
+        print_v("Obtained and parsed Status from server\nStatus: %ld\n", status);
     } else {
         fprintf(stderr, "Received nothing from Server\n");
     }
@@ -242,22 +241,22 @@ int read_resp(FILE *read_fd) {
 
         //read/write data
         while (counter != 0) {
-            toprocess = counter;
-            if (toprocess > BUFFER_SIZE) {
-                toprocess = BUFFER_SIZE;
+            to_process = counter;
+            if (to_process > BUFFER_SIZE) {
+                to_process = BUFFER_SIZE;
             }
 
             // read [buffersize] from file descriptor
-            read = fread(buffer, 1, (size_t) toprocess, read_fd);
-            if ((long)read < toprocess){
+            read = fread(buffer, 1, (size_t) to_process, read_fd);
+            if ((long)read < to_process){
                 fprintf(stderr, "Read Error\n");
             }
 
-            counter -= toprocess;
+            counter -= to_process;
 
             // write [buffersize] bytes to file
-            fwrite(buffer, sizeof(char), (size_t) toprocess, fp);
-            print_v("Copied %ld Bytes to File - %ld Bytes left\n",toprocess,counter);
+            fwrite(buffer, sizeof(char), (size_t) to_process, fp);
+            print_v("Copied %ld Bytes to File - %ld Bytes left\n",to_process,counter);
         }
 
         if (fclose(fp) == EOF) {
