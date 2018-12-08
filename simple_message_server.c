@@ -164,7 +164,7 @@ static int create_socket(char *port) {
     struct addrinfo *base_info, *addr_it;
     const int address_reuse = 1;
 
-    // Get basic address information.
+    // Set basic address information.
     memset(&base_address, 0, sizeof(base_address));
     base_address.ai_family = AF_INET;
     base_address.ai_socktype = SOCK_STREAM;
