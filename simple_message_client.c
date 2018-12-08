@@ -23,7 +23,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <string.h>
-#include <core/simple_message_client_commandline_handling.h>
+#include <simple_message_client_commandline_handling.h>
 #include <unistd.h>
 //#include <arpa/inet.h>    //Can be used for printf(IP);
 
