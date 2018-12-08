@@ -243,8 +243,8 @@ int read_resp(FILE *read_fd) {
         //read/write data
         while (counter != 0) {
             toprocess = counter;
-            if (toprocess > buffersize) {
-                toprocess = buffersize;
+            if (toprocess > BUFFER_SIZE) {
+                toprocess = BUFFER_SIZE;
             }
 
             // read [buffersize] from file descriptor
