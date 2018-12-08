@@ -7,6 +7,7 @@
  *
  * This source file contains the spawning server.
  *
+ * @author ic18b081@technikum-wien.at
  * @author ic17b503@technikum-wien.at
  * @date 2018/12/08
  */
