@@ -18,6 +18,7 @@
  * -------------------------------------------------------------- includes --
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netdb.h>
@@ -169,7 +170,7 @@ static int create_socket(char *port) {
     base_address.ai_flags = AI_PASSIVE;
 
     // Get all available addresses
-    if (getaddrinfo(NULL, port, &base_address, &info) != 0) {
+    if (getaddrinfo(NULL, port, &base_address, &base_info) != 0) {
         return -1;
     }
 
@@ -181,7 +182,7 @@ static int create_socket(char *port) {
 
         // If connection abort reuse address
         if (setsockopt(socket_file_descriptor, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof(int)) == -1) {
-            close(sock);
+            close(socket_file_descriptor);
             continue;
         }
 
@@ -193,7 +194,7 @@ static int create_socket(char *port) {
             break;
     }
 
-    if (p == NULL) {
+    if (addr_it == NULL) {
         warnx("Bind socket to address failed!");
         freeaddrinfo(base_info);
         return -1;
