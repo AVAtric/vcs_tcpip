@@ -249,10 +249,10 @@ static int fork_server(int socket_file_descriptor) {
 
             case 0:
                 close(socket_file_descriptor);
-                if (dup2(accept_sock, STDIN_FILENO) == -1) {
+                if (dup2(open_socket, STDIN_FILENO) == -1) {
                     _exit(EXIT_FAILURE);
                 }
-                if (dup2(accept_sock, STDOUT_FILENO) == -1) {
+                if (dup2(open_socket, STDOUT_FILENO) == -1) {
                     _exit(EXIT_FAILURE);
                 }
                 close(open_socket);
