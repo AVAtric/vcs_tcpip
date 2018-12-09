@@ -168,25 +168,25 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
  */
 static int create_socket(char *port) {
     int socket_file_descriptor = -1;
-    struct addrinfo base_address;
-    struct addrinfo *base_info, *addr_it;
+    struct addrinfo base_addr;
+    struct addrinfo *base_info, *addr_iterator;
     const int address_reuse = 1;
 
     // Set basic address information.
-    memset(&base_address, 0, sizeof(base_address));
-    base_address.ai_family = AF_INET;
-    base_address.ai_socktype = SOCK_STREAM;
-    base_address.ai_flags = AI_PASSIVE;
+    memset(&base_addr, 0, sizeof(base_addr));
+    base_addr.ai_family = AF_INET;
+    base_addr.ai_socktype = SOCK_STREAM;
+    base_addr.ai_flags = AI_PASSIVE;
 
     // Get all available addresses
-    if (getaddrinfo(NULL, port, &base_address, &base_info) != 0) {
+    if (getaddrinfo(NULL, port, &base_addr, &base_info) != 0) {
         return -1;
     }
 
     // Iterate through all available addresses and save socket file descriptor
-    for (addr_it = base_info; addr_it != NULL; addr_it = addr_it->ai_next) {
+    for (addr_iterator = base_info; addr_iterator != NULL; addr_iterator = addr_iterator->ai_next) {
         // Get new socket or continue if failed
-        if ((socket_file_descriptor = socket(addr_it->ai_family, addr_it->ai_socktype, addr_it->ai_protocol)) == -1)
+        if ((socket_file_descriptor = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) == -1)
             continue;
 
         // If connection abort reuse address
@@ -196,14 +196,14 @@ static int create_socket(char *port) {
         }
 
         // Finish connection
-        if (bind(socket_file_descriptor, addr_it->ai_addr, addr_it->ai_addrlen) == -1) {
+        if (bind(socket_file_descriptor, addr_iterator->ai_addr, addr_iterator->ai_addrlen) == -1) {
             close(socket_file_descriptor);
             continue;
         } else
             break;
     }
 
-    if (addr_it == NULL) {
+    if (addr_iterator == NULL) {
         warnx("Bind socket to address failed!");
         freeaddrinfo(base_info);
         return -1;
@@ -231,20 +231,24 @@ static int fork_server(int socket_file_descriptor) {
     struct sockaddr_in socket_address;
     socklen_t address_size = sizeof(struct sockaddr_in);
 
+    // Configure signal handler
     signal_action.sa_handler = child_signal;
     sigemptyset(&signal_action.sa_mask);
     signal_action.sa_flags = SA_RESTART;
 
+    // Set signal action
     if (sigaction(SIGCHLD, &signal_action, NULL) == -1) {
         close(socket_file_descriptor);
         return -1;
     }
 
+    // Open socket to listen
     if (listen(socket_file_descriptor, SOMAXCONN) == -1) {
         close(socket_file_descriptor);
         return -1;
     }
 
+    // Wait for connections
     while (1) {
         if ((open_socket = accept(socket_file_descriptor, (struct sockaddr *)&socket_address, &address_size)) == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -255,6 +259,7 @@ static int fork_server(int socket_file_descriptor) {
             }
         }
 
+        // When connection occur fork new process
         switch (fork()) {
             case -1:
                 close(open_socket);
