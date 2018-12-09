@@ -50,7 +50,7 @@ static int verbose;
  * ------------------------------------------------- function declarations --
  */
 
-static void usage(FILE *stream, const char *cmnd, int exitcode);
+static void usage(FILE *stream, const char *cmd, int exitcode);
 static int connectToServer(const char *server, const char *port);
 static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url);
 static int read_resp(FILE *read_fd);
@@ -125,8 +125,7 @@ int main(const int argc, const char *const argv[]) {
  * \retval EXIT_SUCCESS successful execution
  */
 static int connectToServer(const char *server, const char *port) {
-
-    int sfd, s;
+    int sfd = -1, s;
     struct addrinfo hints;
     struct addrinfo *result, *rp;
 
@@ -164,8 +163,8 @@ static int connectToServer(const char *server, const char *port) {
     return sfd;
 }
 
-static void usage(FILE *stream, const char *cmnd, int exitcode) {
-    fprintf(stream, "usage: %s options\n", cmnd);
+static void usage(FILE *stream, const char *cmd, int exitcode) {
+    fprintf(stream, "usage: %s options\n", cmd);
     fprintf(stream, "options:\n");
     fprintf(stream, "        -s, --server <server>   full qualified domain name or IP address of the server\n");
     fprintf(stream, "        -p, --port <port>       well-known port of the server [0..65535]\n");
