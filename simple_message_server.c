@@ -47,9 +47,9 @@
  * ------------------------------------------------- function declarations --
  */
 
-static int get_parameters(int argc, char *argv[], char *port[]);
+static int parse_parameters(int argc, char **argv, char **port);
 static int create_socket(char *port);
-static int fork_server(int socket_file_descriptor);
+static int fork_server(int socket_fd);
 static void child_signal(int signal);
 
 /*
@@ -69,21 +69,21 @@ static void child_signal(int signal);
  * \retval EXIT_SUCCESS successful execution
  */
 int main(int argc, char *argv[]) {
-    char *port_number = NULL;
+    char *port = NULL;
     int socket;
 
-    // Parse the passed parameters or throw an error if this is not possible.
-    if (get_parameters(argc, argv, &port_number) == -1) {
+    // Parse the passed parameters or throw an error if this is not possible
+    if (parse_parameters(argc, argv, &port) == -1) {
         fprintf(stderr, "Usage: %s -p port [-h]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    // Create a socket or throw an error if its not possible.
-    if ((socket = create_socket(port_number)) == -1) {
+    // Create a socket or throw an error if its not possible
+    if ((socket = create_socket(port)) == -1) {
         return EXIT_FAILURE;
     }
 
-    // Accept connections and fork the server or throw error if not possible.
+    // Wait and accept connections and fork a new server or throw error if not possible
     if (fork_server(socket) == -1) {
         return EXIT_FAILURE;
     }
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
  * \retval 0 successful execution
  * \retval -1 failed execution.
  */
-static int get_parameters(int argc, char *argv[], char *port[]) {
+static int parse_parameters(int argc, char **argv, char **port) {
     int options;
     long port_number;
     char *check_convert;
@@ -123,20 +123,21 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
             case 'p':
                 errno = 0;
 
+                // Convert port to validate
                 port_number = strtol(optarg, &check_convert, 10);
 
                 if(errno != 0){
-                    warnx("Some error happen: %i", errno);
+                    warnx("Something went wrong parsing port: %i", errno);
                     return -1;
                 }
 
                 if(*check_convert != '\0'){
-                    warnx("Port not found!");
+                    warnx("Port need to be a number!");
                     return -1;
                 }
 
                 if(port_number < 1 || port_number > 65535){
-                    warnx("Port not in rage!");
+                    warnx("Port not in rage (1-65535)!");
                     return -1;
                 }
 
@@ -148,7 +149,7 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
     }
 
     if (optind < argc) {
-        warnx("Wrong arguments present!");
+        warnx("Wrong number of arguments present!");
         return -1;
     }
 
@@ -167,12 +168,12 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
  * \retval Any integer (except -1) is socket file descriptor
  */
 static int create_socket(char *port) {
-    int socket_file_descriptor = -1;
+    int socket_fd = -1;
     struct addrinfo base_addr;
     struct addrinfo *base_info, *addr_iterator;
     const int address_reuse = 1;
 
-    // Set basic address information.
+    // Set basic address information
     memset(&base_addr, 0, sizeof(base_addr));
     base_addr.ai_family = AF_INET;
     base_addr.ai_socktype = SOCK_STREAM;
@@ -183,35 +184,35 @@ static int create_socket(char *port) {
         return -1;
     }
 
-    // Iterate through all available addresses and save socket file descriptor
+    // Iterate through all available sockets and save socket file descriptor
     for (addr_iterator = base_info; addr_iterator != NULL; addr_iterator = addr_iterator->ai_next) {
         // Get new socket or continue if failed
-        if ((socket_file_descriptor = socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) == -1)
+        if ((socket_fd =
+                socket(addr_iterator->ai_family, addr_iterator->ai_socktype, addr_iterator->ai_protocol)) == -1)
             continue;
 
         // If connection abort reuse address
-        if (setsockopt(socket_file_descriptor, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof(int)) == -1) {
-            close(socket_file_descriptor);
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &address_reuse, sizeof(int)) == -1) {
+            close(socket_fd);
             continue;
         }
 
         // Finish connection
-        if (bind(socket_file_descriptor, addr_iterator->ai_addr, addr_iterator->ai_addrlen) == -1) {
-            close(socket_file_descriptor);
+        if (bind(socket_fd, addr_iterator->ai_addr, addr_iterator->ai_addrlen) == -1) {
+            close(socket_fd);
             continue;
         } else
             break;
     }
 
+    freeaddrinfo(base_info);
+
     if (addr_iterator == NULL) {
         warnx("Bind socket to address failed!");
-        freeaddrinfo(base_info);
         return -1;
     }
 
-    freeaddrinfo(base_info);
-
-    return socket_file_descriptor;
+    return socket_fd;
 }
 
 /**
@@ -219,17 +220,17 @@ static int create_socket(char *port) {
  *
  * Clones the calling process when new connection happens and passes the connection.
  *
- * \param socket_file_descriptor - integer value of the server socket
+ * \param socket_fd - integer value of the server socket
  *
  *
  * \return Information about success or failure in the execution
  * \retval -1 failed execution.
  */
-static int fork_server(int socket_file_descriptor) {
-    int open_socket;
+static int fork_server(int socket_fd) {
+    int active_connection;
     struct sigaction signal_action;
-    struct sockaddr_in socket_address;
-    socklen_t address_size = sizeof(struct sockaddr_in);
+    struct sockaddr_in socket_addr;
+    socklen_t addr_len = sizeof(struct sockaddr_in);
 
     // Configure signal handler
     signal_action.sa_handler = child_signal;
@@ -238,23 +239,23 @@ static int fork_server(int socket_file_descriptor) {
 
     // Set signal action
     if (sigaction(SIGCHLD, &signal_action, NULL) == -1) {
-        close(socket_file_descriptor);
+        close(socket_fd);
         return -1;
     }
 
     // Open socket to listen
-    if (listen(socket_file_descriptor, SOMAXCONN) == -1) {
-        close(socket_file_descriptor);
+    if (listen(socket_fd, SOMAXCONN) == -1) {
+        close(socket_fd);
         return -1;
     }
 
     // Wait for connections
     while (1) {
-        if ((open_socket = accept(socket_file_descriptor, (struct sockaddr *)&socket_address, &address_size)) == -1) {
+        if ((active_connection = accept(socket_fd, (struct sockaddr *)&socket_addr, &addr_len)) == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             } else {
-                close(socket_file_descriptor);
+                close(socket_fd);
                 return -1;
             }
         }
@@ -262,20 +263,23 @@ static int fork_server(int socket_file_descriptor) {
         // When connection occur fork new process
         switch (fork()) {
             case -1:
-                close(open_socket);
+                close(active_connection);
                 break;
             case 0:
-                close(socket_file_descriptor);
-                if (dup2(open_socket, STDIN_FILENO) == -1) {
+                close(socket_fd);
+
+                // Duplicate connection, passing to STDIN and closing old one
+                if (dup2(active_connection, STDIN_FILENO) == -1) {
                     _exit(EXIT_FAILURE);
                 }
-                close(open_socket);
+
+                close(active_connection);
                 execl(SERVER_LOGIC, "", NULL);
 
                 // Will only be reached if starting logic failed
                 _exit(EXIT_FAILURE);
             default:
-                close(open_socket);
+                close(active_connection);
                 break;
         }
     }
@@ -285,7 +289,7 @@ static int fork_server(int socket_file_descriptor) {
 /**
  * \brief Child signal handler
  *
- * Waits for child-process to die
+ * Waits for child-process to die.
  *
  * \param signal - integer value for signal
  */
