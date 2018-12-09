@@ -33,7 +33,7 @@
  * --------------------------------------------------------------- defines --
  */
 
-#define SERVER_LOGIC "/usr/local/bin/simple_message_server_logic"
+#define SERVER_LOGIC "./simple_message_server_logic"
 
 /*
  * -------------------------------------------------------------- typedefs --
