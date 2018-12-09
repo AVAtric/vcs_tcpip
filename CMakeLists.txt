@@ -7,18 +7,24 @@ find_package(Doxygen)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wextra -Wstrict-prototypes -pedantic -fno-common -O3 -g -std=gnu11")
 
+add_custom_target(
+        simple_message_server_logic
+        COMMAND $(MAKE)
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/simple_message_server_logic
+)
+
+add_custom_target(
+        libsimple_message_client_commandline_handling
+        COMMAND $(MAKE)
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/libsimple_message_client_commandline_handling
+)
+
 add_executable(simple_message_client simple_message_client.c)
 add_executable(simple_message_server simple_message_server.c)
 
 target_link_libraries(
         simple_message_client
         ${CMAKE_SOURCE_DIR}/core/libsimple_message_client_commandline_handling/libsimple_message_client_commandline_handling.a
-)
-
-add_custom_target(
-        simple_message_server_logic
-        COMMAND $(MAKE)
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/simple_message_server_logic
 )
 
 if(DOXYGEN_FOUND)
