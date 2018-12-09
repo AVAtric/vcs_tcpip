@@ -51,7 +51,7 @@ static int verbose;
  */
 
 static void usage(FILE *stream, const char *cmd, int exitcode);
-static int connectToServer(const char *server, const char *port);
+static int connect_to_server(const char *server, const char *port);
 static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url);
 static int read_resp(FILE *read_fd);
 
@@ -85,7 +85,7 @@ int main(const int argc, const char *const argv[]) {
     smc_parsecommandline(argc, argv, usage, &server, &port, &user, &message, &img_url, &verbose);
     print_v("Using the following options: server=%s port=%s, user=%s, img_url=%s, message=%s\n", server, port, user, img_url, message);
 
-    sfd = connectToServer(server, port);
+    sfd = connect_to_server(server, port);
 
     write_fd = fdopen(sfd, "w");
     if (write_fd == NULL) {
@@ -124,7 +124,7 @@ int main(const int argc, const char *const argv[]) {
  * \retval EXIT_FAILURE failed execution.
  * \retval EXIT_SUCCESS successful execution
  */
-static int connectToServer(const char *server, const char *port) {
+static int connect_to_server(const char *server, const char *port) {
     int sfd = -1, s;
     struct addrinfo hints;
     struct addrinfo *result, *rp;
