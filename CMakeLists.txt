@@ -7,6 +7,9 @@ find_package(Doxygen)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wextra -Wstrict-prototypes -pedantic -fno-common -O3 -g -std=gnu11")
 
+include_directories(core/libsimple_message_client_commandline_handling)
+include_directories(core/simple_message_server_logic)
+
 add_custom_target(
         simple_message_server_logic
         COMMAND $(MAKE)
