@@ -25,9 +25,6 @@ add_custom_target(
 add_executable(simple_message_client simple_message_client.c)
 add_executable(simple_message_server simple_message_server.c)
 
-add_dependencies(simple_message_client libsimple_message_client_commandline_handling)
-add_dependencies(simple_message_server simple_message_server_logic)
-
 target_link_libraries(
         simple_message_client
         ${CMAKE_SOURCE_DIR}/core/libsimple_message_client_commandline_handling/libsimple_message_client_commandline_handling.a
