@@ -43,6 +43,12 @@ build/
 .idea/dictionaries
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
+.idea/deployment.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/other.xml
+.idea/vcs_tcpip.iml
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids

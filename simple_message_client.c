@@ -25,6 +25,8 @@
 #include <string.h>
 #include <simple_message_client_commandline_handling.h>
 #include <unistd.h>
+#include <err.h>
+#include <errno.h>
 //#include <arpa/inet.h>    //Can be used for printf(IP);
 
 /*
@@ -115,14 +117,14 @@ int main(const int argc, const char *const argv[]) {
 }
 
 /**
- * \brief Create socket and connect
+ * \brief Create socket and connect to server
  *
  * \param server - number of command line arguments.
  * \param port - string with information of the port
  *
- * \return Information about success or failure in the execution
- * \retval EXIT_FAILURE failed execution.
- * \retval EXIT_SUCCESS successful execution
+ * \return file descriptor
+ * \retval On success, a file descriptor for the new socket is returned
+ * \retval On error, -1 is returned
  */
 static int connect_to_server(const char *server, const char *port) {
     int sfd = -1, s;
@@ -163,6 +165,13 @@ static int connect_to_server(const char *server, const char *port) {
     return sfd;
 }
 
+/**
+ * \brief Prints the usage information of this program to a defined stream and exits the program
+ *
+ * \param stream - Stream to print the usage information
+ * \param cmd - name of executable
+ * \param exitcode - returned exit code of the program
+ */
 static void usage(FILE *stream, const char *cmd, int exitcode) {
     fprintf(stream, "usage: %s options\n", cmd);
     fprintf(stream, "options:\n");
@@ -176,6 +185,19 @@ static void usage(FILE *stream, const char *cmd, int exitcode) {
     exit(exitcode);
 }
 
+
+/**
+ * \brief Format the message and send a request to the Server
+ *
+ * \param write_fd - FILE pointer to write the request
+ * \param user - username which get added to request
+ * \param message - message which get added to request
+ * \param img_url - img_url which get added to request
+ *
+ * \return Information about success or failure in the execution
+ * \retval EXIT_FAILURE failed execution.
+ * \retval EXIT_SUCCESS successful execution
+ */
 static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url) {
     const char *pre_user = "user=";
     const char *pre_message = "\n";
@@ -195,6 +217,16 @@ static int send_req(FILE *write_fd, const char *user, const char *message, const
 
 }
 
+/**
+ * \brief Fetch and well-form server response.
+ * Writes obtained Files to disk.
+ *
+ * \param read_fd - FILE pointer where to read the responst
+ *
+ * \return Information about success or failure in the execution
+ * \retval EXIT_FAILURE failed execution.
+ * \retval EXIT_SUCCESS successful execution
+ */
 static int read_resp(FILE *read_fd) {
     char *line = NULL;
     char buffer[BUFFER_SIZE];
