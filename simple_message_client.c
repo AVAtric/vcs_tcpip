@@ -273,7 +273,13 @@ static int read_resp(FILE *read_fd) {
             warnx("Expected: status= from server\n Received: %s=",cmp);
             return -1;
         }
+        errno = 0;
         status = strtol(strtok(NULL, "\n"), NULL, 10);
+
+        if(errno != 0){
+            warnx("Something went wrong parsing status: %i", errno);
+            return -1;
+        }
         print_v("Obtained and parsed Status from server\nStatus: %ld\n", status);
     } else {
         warnx("Could not well-form status - Received no line from Server\n");
@@ -307,8 +313,9 @@ static int read_resp(FILE *read_fd) {
                 warnx("Expected: len= from server\n Received: %s=",cmp);
                 return -1;
             }
+            errno = 0;
             if ((file_len = strtol(strtok(NULL, "\n"), NULL, 10)) == 0){
-                warnx("Could not parse received file_len");
+                warnx("Could not parse received file_len: %i", errno);
                 return -1;
             }
             print_v("Obtained and parsed File length from server\nFile length: %ld\n",file_len);
