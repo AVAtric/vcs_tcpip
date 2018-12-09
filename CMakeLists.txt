@@ -11,19 +11,22 @@ include_directories(core/libsimple_message_client_commandline_handling)
 include_directories(core/simple_message_server_logic)
 
 add_custom_target(
-        simple_message_server_logic
-        COMMAND $(MAKE)
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/simple_message_server_logic
-)
-
-add_custom_target(
         libsimple_message_client_commandline_handling
         COMMAND $(MAKE)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/libsimple_message_client_commandline_handling
 )
 
+add_custom_target(
+        simple_message_server_logic
+        COMMAND $(MAKE)
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/core/simple_message_server_logic
+)
+
 add_executable(simple_message_client simple_message_client.c)
 add_executable(simple_message_server simple_message_server.c)
+
+add_dependencies(simple_message_client libsimple_message_client_commandline_handling)
+add_dependencies(simple_message_server simple_message_server_logic)
 
 target_link_libraries(
         simple_message_client
