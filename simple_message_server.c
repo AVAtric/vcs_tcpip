@@ -116,11 +116,13 @@ static int parse_parameters(int argc, char **argv, char **port) {
         return -1;
     }
 
+    // Get passed options
     while ((options = getopt(argc, argv, "p:h")) != -1) {
         switch (options) {
             case 'h':
                 return -1;
             case 'p':
+                // Clear error info
                 errno = 0;
 
                 // Convert port to validate
@@ -149,7 +151,6 @@ static int parse_parameters(int argc, char **argv, char **port) {
     }
 
     if (optind < argc) {
-        warnx("Wrong number of arguments present!");
         return -1;
     }
 
@@ -268,8 +269,13 @@ static int fork_server(int socket_fd) {
             case 0:
                 close(socket_fd);
 
-                // Duplicate connection, passing to STDIN and closing old one
+                // Redirect connection, passing to STDIN and closing old one
                 if (dup2(active_connection, STDIN_FILENO) == -1) {
+                    _exit(EXIT_FAILURE);
+                }
+
+                // Redirect connection, passing to STDOUT and closing old one
+                if (dup2(active_connection, STDOUT_FILENO) == -1) {
                     _exit(EXIT_FAILURE);
                 }
 
