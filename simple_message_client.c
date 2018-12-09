@@ -87,27 +87,50 @@ int main(const int argc, const char *const argv[]) {
     smc_parsecommandline(argc, argv, usage, &server, &port, &user, &message, &img_url, &verbose);
     print_v("Using the following options: server=%s port=%s, user=%s, img_url=%s, message=%s\n", server, port, user, img_url, message);
 
-    sfd = connect_to_server(server, port);
+    if ((sfd = connect_to_server(server, port)) == -1){
+        fprintf(stderr, "Could not connect to server\n");
+        close(sfd);
+        return EXIT_FAILURE;
+    }
 
     write_fd = fdopen(sfd, "w");
     if (write_fd == NULL) {
         fprintf(stderr, "Could not open write fd\n");
         fclose(write_fd);
-        exit(EXIT_FAILURE);
+        close(sfd);
+        return EXIT_FAILURE;
     }
 
-    send_req(write_fd, user, message, img_url);
-    shutdown(sfd, SHUT_WR);
+    if (send_req(write_fd, user, message, img_url)){
+        fprintf(stderr, "Error at sending request\n");
+        fclose(write_fd);
+        close(sfd);
+        return EXIT_FAILURE;
+    }
+    if (shutdown(sfd, SHUT_WR) == -1){
+        fprintf(stderr, "Error could not shutdown write part of socket\n");
+        fclose(write_fd);
+        close(sfd);
+        return EXIT_FAILURE;
+    }
     print_v("%s", "Closed write part of socket\n")
 
     read_fd = fdopen(sfd, "r");
     if (read_fd == NULL) {
         fprintf(stderr, "Could not open read fd\n");
         fclose(write_fd);
-        exit(EXIT_FAILURE);
+        fclose(read_fd);
+        close(sfd);
+        return EXIT_FAILURE;
     }
 
-    read_resp(read_fd);
+    if (read_resp(read_fd) != 0){
+        fprintf(stderr, "Error at reading response\n");
+        fclose(write_fd);
+        fclose(read_fd);
+        close(sfd);
+        return EXIT_FAILURE;
+    }
 
     fclose(write_fd);
     fclose(read_fd);
@@ -137,8 +160,8 @@ static int connect_to_server(const char *server, const char *port) {
 
     s = getaddrinfo(server, port, &hints, &result);
     if (s != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-        exit(EXIT_FAILURE);
+        warnx("getaddrinfo: %s\n", gai_strerror(s));
+        return sfd;
     }
 
     for (rp = result; rp != NULL; rp = rp->ai_next) {
@@ -157,8 +180,9 @@ static int connect_to_server(const char *server, const char *port) {
     }
 
     if (rp == NULL) { /* No address succeeded */
-        fprintf(stderr, "Could not connect\n");
-        exit(EXIT_FAILURE);
+        warnx("Could not connect\n");
+        freeaddrinfo(result);
+        return -1;
     }
 
     freeaddrinfo(result); /* No longer needed */
@@ -194,9 +218,7 @@ static void usage(FILE *stream, const char *cmd, int exitcode) {
  * \param message - message which get added to request
  * \param img_url - img_url which get added to request
  *
- * \return Information about success or failure in the execution
- * \retval EXIT_FAILURE failed execution.
- * \retval EXIT_SUCCESS successful execution
+ * @returns 0 if everything went well or -1 in case of error
  */
 static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url) {
     const char *pre_user = "user=";
@@ -210,8 +232,15 @@ static int send_req(FILE *write_fd, const char *user, const char *message, const
     }
 
     print_v("Going to send the following message:%s%s%s%s%s%s\n", pre_user, user, pre_img_url, img_url, pre_message, message)
-    fprintf(write_fd, "%s%s%s%s%s%s", pre_user, user, pre_img_url, img_url, pre_message, message);
-    fflush(write_fd);
+
+    if (fprintf(write_fd, "%s%s%s%s%s%s", pre_user, user, pre_img_url, img_url, pre_message, message) < 0){
+        warnx("Could not write to file descriptor");
+        return -1;
+    }
+    if (fflush(write_fd) != 0){
+        warnx("Could not flush output buffer");
+        return -1;
+    }
 
     return 0;
 
@@ -223,14 +252,13 @@ static int send_req(FILE *write_fd, const char *user, const char *message, const
  *
  * \param read_fd - FILE pointer where to read the responst
  *
- * \return Information about success or failure in the execution
- * \retval EXIT_FAILURE failed execution.
- * \retval EXIT_SUCCESS successful execution
+ * @returns 0 if everything went well or -1 in case of error
  */
 static int read_resp(FILE *read_fd) {
     char *line = NULL;
     char buffer[BUFFER_SIZE];
     char *file_name = NULL;
+    char *cmp = NULL;
     long status;
     long file_len = 0;
     long counter = 0;
@@ -240,32 +268,53 @@ static int read_resp(FILE *read_fd) {
     FILE *fp = NULL;
 
     if ((getline(&line, &len, read_fd)) != -1) {
-        strtok(line, "=");
+        cmp = strtok(line, "=");
+        if (strncmp(cmp,"status",7) != 0){
+            warnx("Expected: status= from server\n Received: %s=",cmp);
+            return -1;
+        }
         status = strtol(strtok(NULL, "\n"), NULL, 10);
         print_v("Obtained and parsed Status from server\nStatus: %ld\n", status);
     } else {
-        fprintf(stderr, "Received nothing from Server\n");
+        warnx("Could not well-form status - Received no line from Server\n");
+        return -1;
     }
 
     while ((getline(&line, &len, read_fd)) != -1) {
         //get file_name
-        strtok(line, "=");
-        file_name = strtok(NULL, "\n");
+        cmp = strtok(line, "=");
+        if (strncmp(cmp,"file",5) != 0){
+            warnx("Expected: file= from server\n Received: %s=",cmp);
+            return -1;
+        }
+
+        if ((file_name = strtok(NULL, "\n")) == NULL){
+            warnx("Failed read file_name");
+            return -1;
+        }
         print_v("Obtained and parsed Filename from server\nFilename: %s\n",file_name);
 
         //open file
         if ((fp = fopen(file_name, "w+")) == NULL) {
-            fprintf(stderr, "Could not open File\n");
-            break;
+            warnx("Could not open File: %s\n",file_name);
+            return -1;
         }
 
         //get file_len
         if ((getline(&line, &len, read_fd)) != -1) {
-            strtok(line, "=");
-            file_len = strtol(strtok(NULL, "\n"), NULL, 10);
+            cmp = strtok(line, "=");
+            if (strncmp(cmp,"len",4) != 0){
+                warnx("Expected: len= from server\n Received: %s=",cmp);
+                return -1;
+            }
+            if ((file_len = strtol(strtok(NULL, "\n"), NULL, 10)) == 0){
+                warnx("Could not parse received file_len");
+                return -1;
+            }
             print_v("Obtained and parsed File length from server\nFile length: %ld\n",file_len);
         } else {
-            fprintf(stderr, "Could not read Filename\n");
+            warnx("Could not read Filename line\n");
+            return -1;
         }
 
         counter = file_len;
@@ -280,18 +329,23 @@ static int read_resp(FILE *read_fd) {
             // read [buffersize] from file descriptor
             read = fread(buffer, 1, (size_t) to_process, read_fd);
             if ((long)read < to_process){
-                fprintf(stderr, "Read Error\n");
+                warnx("File Data read Error\n");
+                return -1;
+            }
+
+            // write [buffersize] bytes to file
+            if ((long)(fwrite(buffer, sizeof(char), (size_t) to_process, fp)) < to_process){
+                warnx("File Data write Error\n");
+                return -1;
             }
 
             counter -= to_process;
-
-            // write [buffersize] bytes to file
-            fwrite(buffer, sizeof(char), (size_t) to_process, fp);
             print_v("Copied %ld Bytes to File - %ld Bytes left\n",to_process,counter);
         }
 
         if (fclose(fp) == EOF) {
-            break;
+            warnx("Error closing filestream\n");
+            return -1;
         }
     }
     return 0;
