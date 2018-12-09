@@ -165,7 +165,7 @@ static int parse_parameters(int argc, char **argv, char **port) {
  *
  * \return Socket file descriptor
  * \retval -1 failed execution.
- * \retval Any integer (except -1) is socket file descriptor
+ * \retval fd file descriptor for socket
  */
 static int create_socket(char *port) {
     int socket_fd = -1;
