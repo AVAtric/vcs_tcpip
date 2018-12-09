@@ -50,10 +50,10 @@ static int verbose;
  * ------------------------------------------------- function declarations --
  */
 
-void usage(FILE *stream, const char *cmnd, int exitcode);
-int connectToServer(const char *server, const char *port);
-int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url);
-int read_resp(FILE *read_fd);
+static void usage(FILE *stream, const char *cmnd, int exitcode);
+static int connectToServer(const char *server, const char *port);
+static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url);
+static int read_resp(FILE *read_fd);
 
 /*
  * ------------------------------------------------------------- functions --
@@ -124,7 +124,7 @@ int main(const int argc, const char *const argv[]) {
  * \retval EXIT_FAILURE failed execution.
  * \retval EXIT_SUCCESS successful execution
  */
-int connectToServer(const char *server, const char *port) {
+static int connectToServer(const char *server, const char *port) {
 
     int sfd, s;
     struct addrinfo hints;
@@ -164,7 +164,7 @@ int connectToServer(const char *server, const char *port) {
     return sfd;
 }
 
-void usage(FILE *stream, const char *cmnd, int exitcode) {
+static void usage(FILE *stream, const char *cmnd, int exitcode) {
     fprintf(stream, "usage: %s options\n", cmnd);
     fprintf(stream, "options:\n");
     fprintf(stream, "        -s, --server <server>   full qualified domain name or IP address of the server\n");
@@ -177,7 +177,7 @@ void usage(FILE *stream, const char *cmnd, int exitcode) {
     exit(exitcode);
 }
 
-int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url) {
+static int send_req(FILE *write_fd, const char *user, const char *message, const char *img_url) {
     const char *pre_user = "user=";
     const char *pre_message = "\n";
     const char *pre_img_url = "";
@@ -196,7 +196,7 @@ int send_req(FILE *write_fd, const char *user, const char *message, const char *
 
 }
 
-int read_resp(FILE *read_fd) {
+static int read_resp(FILE *read_fd) {
     char *line = NULL;
     char buffer[BUFFER_SIZE];
     char *file_name = NULL;

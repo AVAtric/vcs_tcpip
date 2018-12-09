@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
  * \param argv - array of command line arguments.
  * \param port - string with information of the port
  *
- * \return Information about succes or failure in the execution
+ * \return Information about success or failure in the execution
  * \retval 0 successful execution
  * \retval -1 failed execution.
  */
@@ -222,7 +222,7 @@ static int create_socket(char *port) {
  * \param socket_file_descriptor - integer value of the server socket
  *
  *
- * \return Information about succes or failure in the execution
+ * \return Information about success or failure in the execution
  * \retval -1 failed execution.
  */
 static int fork_server(int socket_file_descriptor) {
