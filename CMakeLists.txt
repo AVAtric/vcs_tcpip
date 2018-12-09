@@ -18,7 +18,7 @@ add_custom_target(
 
 add_executable(simple_message_client simple_message_client.c)
 add_executable(simple_message_server simple_message_server.c)
-add_executable(simple_message_server_logic core/simple_message_server_logic)
+add_executable(simple_message_server_logic core/simple_message_server_logic.c)
 
 add_dependencies(simple_message_client libsimple_message_client_commandline_handling)
 add_dependencies(simple_message_server simple_message_server_logic)
