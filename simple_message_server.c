@@ -283,6 +283,7 @@ static int fork_server(int socket_fd) {
                 execl(SERVER_LOGIC, "", NULL);
 
                 // Will only be reached if starting logic failed
+                warnx("Server logic not found!");
                 _exit(EXIT_FAILURE);
             default:
                 close(active_connection);
