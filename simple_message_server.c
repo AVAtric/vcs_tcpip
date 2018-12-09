@@ -126,7 +126,7 @@ static int get_parameters(int argc, char *argv[], char *port[]) {
                 port_number = strtol(optarg, &check_convert, 10);
 
                 if(errno != 0){
-                    warnx("Some error happend: %i", errno);
+                    warnx("Some error happen: %i", errno);
                     return -1;
                 }
 
